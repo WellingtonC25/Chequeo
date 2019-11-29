@@ -1,0 +1,43 @@
+﻿@model ServiceDeskPro.Models.DTO.SolicitudesSinAsignarDTO
+@{
+    ViewBag.Title = "AsignarUsuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using (Html.BeginForm())
+{
+    <h2>Asignar Usuario</h2>
+    <div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <label>Solicitud</label>
+                    </th>
+                    <th>
+                        <Label>Descripcion</Label>
+                    </th>
+                    <th>
+                        <label>Usuario</label>
+                    </th>
+                  
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        @Model.Solicitudes.Id
+                    </td>
+                    <td>
+                        @Model.Solicitudes.Description
+                    </td>
+
+                    <td>
+                        @Html.DropDownListFor(c => c.UsuarioId, (SelectList)ViewBag.Usuarios, "Seleccionar Usuario", new { @class = "form-control" })
+                    </td>
+                </tr>
+            </tbody>
+            @Html.HiddenFor(c=>c.Solicitudes.Id)
+        </table>
+        <button type="submit" class="btn btn-success">Asignar</button>
+    </div>
+}

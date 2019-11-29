@@ -1,0 +1,58 @@
+﻿@model ServiceDeskPro.Models.DTO.TransferirSolicitudDTO
+@{
+    ViewBag.Title = "Transferir Solicitud a otro Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using (Html.BeginForm())
+{
+    <h2>Transferir Solicitud a Usuario</h2>
+    <div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <label>Solicitud</label>
+                    </th>
+                    <th>
+                        <Label>Descripcion</Label>
+                    </th>
+                    <th>
+                        <label>Usuario con solicitud</label>
+                    </th>
+                    <th>
+                        <label>Usuario a transferir</label>
+                    </th>
+                    <th>
+                        <label>Justificacion de transferencia</label>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        @Model.Solicitudes.Id
+                    </td>
+                    <td>
+                        @Model.Solicitudes.Description
+                    </td>
+                    <td>
+                        @Model.Solicitudes.UsuarioId
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(c => c.UsuarioId, (SelectList)ViewBag.Usuarios, "Seleccionar Usuario", new { @class = "form-control" })
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.Solicitudes.AdditionalComment, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.Solicitudes.AdditionalComment, "", new { @class = "text-danger" })
+                            </div>
+                        </div>                   
+                    </td>
+                </tr>
+            </tbody>
+            @Html.HiddenFor(c => c.Solicitudes.Id)
+        </table>
+        <button type="submit" class="btn btn-success">Transferir</button>
+    </div>
+}

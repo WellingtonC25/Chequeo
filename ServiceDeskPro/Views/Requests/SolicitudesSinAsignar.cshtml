@@ -1,0 +1,50 @@
+﻿@model IEnumerable<ServiceDeskPro.Models.Request>
+@{
+    ViewBag.Title = "SolicitudesSinAsignar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Solicitudes Sin Asignar</h2>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Id)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.Date)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        if (item.UsuarioId == null)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Date)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.ActionLink("Asignar Usuario", "AsignarUsuario", "Requests", new { Id = item.Id }, new { @class = "btn btn-info" })
+                </td>
+            </tr>
+        }
+    }
+</table>
+
+<td>
+    @Html.ActionLink("Volver", "Index", "Requests", new { @class = "btn btn-info" })
+</td>
