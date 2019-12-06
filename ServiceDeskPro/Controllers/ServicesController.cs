@@ -1,7 +1,11 @@
-﻿using System.Data.Entity;
+﻿using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 using ServiceDeskPro.Models;
 
 namespace ServiceDeskPro.Controllers
@@ -11,10 +15,35 @@ namespace ServiceDeskPro.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
-        // GET: Services
+        // GET: Customers
         public ActionResult Index()
         {
-            return View(db.Services.ToList());
+            IEnumerable<Service> services = null;
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new System.Uri("https://localhost:44339/api/");
+
+                var responseTask = client.GetAsync("Services/GetServices");
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<IList<Service>>();
+                    readTask.Wait();
+
+                    services = readTask.Result;
+                }
+                else
+                {
+                    services = Enumerable.Empty<Service>();
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+            return View(services);
+
         }
 
         // GET: Services/Details/5
@@ -38,67 +67,95 @@ namespace ServiceDeskPro.Controllers
             return View();
         }
 
-        // POST: Services/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,ServiceType,Description")] Service service)
+        public ActionResult Create(Service service)
         {
-            if (ModelState.IsValid)
+            using (var client = new HttpClient())
             {
-                db.Services.Add(service);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+                client.BaseAddress = new System.Uri("https://localhost:44339/api/Services/");
 
+                var postTask = client.PostAsJsonAsync<Service>("CrearServicio", service);
+                postTask.Wait();
+
+                var result = postTask.Result;
+
+                if(!result.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+            ModelState.AddModelError(string.Empty, "Server Error. Please contact administrator.");
             return View(service);
         }
 
         // GET: Services/Edit/5
         public ActionResult Edit(int? id)
-        {
-            if (id == null)
+        {//La Kasita 
+            Service service = null;
+            using (var client = new HttpClient())
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                client.BaseAddress = new System.Uri("https://localhost:44339/api/");
+                var responTask = client.GetAsync("Services/GetServices?id" + id.ToString());
+                responTask.Wait();
+
+                var result = responTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<Service>();
+                    readTask.Wait();
+
+                    service = readTask.Result;
+                }
             }
-            Service service = db.Services.Find(id);
-            if (service == null)
-            {
-                return HttpNotFound();
-            }
+           
             return View(service);
         }
 
-        // POST: Services/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPut]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,ServiceType,Description")] Service service)
+        public ActionResult Edit(Service servicePut)
         {
-            if (ModelState.IsValid)
+            using (var client = new HttpClient())
             {
-                db.Entry(service).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                client.BaseAddress = new System.Uri("https://localhost:44339/api/Services/EditarServicio");
+
+                var putTask = client.PutAsJsonAsync<Service>("EditarServicio", servicePut);
+                putTask.Wait();
+
+                var result = putTask.Result;
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<IList<Service>>();
+                    readTask.Wait();
+
+                    return RedirectToAction("Index");
+                }
             }
-            return View(service);
+            return View();
         }
+
+        [HttpDelete]
+        [ValidateAntiForgeryToken]
 
         // GET: Services/Delete/5
         public ActionResult Delete(int? id)
         {
-            if (id == null)
+            using (var client = new HttpClient())
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                client.BaseAddress = new System.Uri("https://localhost:44339/api/");
+
+                var deleteTask = client.DeleteAsync("Services / GetServices" + id.ToString());
+                deleteTask.Wait();
+
+                var result = deleteTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                return RedirectToAction("Index");
             }
-            Service service = db.Services.Find(id);
-            if (service == null)
-            {
-                return HttpNotFound();
-            }
-            return View(service);
         }
 
         // POST: Services/Delete/5
@@ -119,6 +176,10 @@ namespace ServiceDeskPro.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+        private List<Service> ListaService()
+        {
+            return db.Services.ToList();
         }
     }
 }

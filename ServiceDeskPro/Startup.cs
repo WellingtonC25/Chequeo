@@ -38,7 +38,7 @@ namespace ServiceDeskPro
             //}
 
             //var userr = UserManager.FindById("53eddab3-9b0a-4ed5-b262-93cf426b7056");
-            // UserManager.AddToRole(userr, "Admin");
+            //UserManager.AddToRole(userr.Id, "Admin");
         }
     }
 }

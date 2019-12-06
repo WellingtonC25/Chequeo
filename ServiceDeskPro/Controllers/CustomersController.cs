@@ -4,13 +4,15 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Web;
+using System.Web.Http.Cors;
 using System.Web.Mvc;
 using ServiceDeskPro.Models;
 
 namespace ServiceDeskPro.Controllers
 {
-    [Authorize]
+    
     public class CustomersController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -18,7 +20,30 @@ namespace ServiceDeskPro.Controllers
         // GET: Customers
         public ActionResult Index()
         {
-            return View(db.Customers.ToList());
+            IEnumerable<Customer> customers = null;
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("https://localhost:44339/api/Customers/");
+
+                var responseTask = client.GetAsync("GetClientes");
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<List<Customer>>();
+                    readTask.Wait();
+
+                    customers = readTask.Result;
+                }
+                else
+                {
+                    customers = Enumerable.Empty<Customer>();
+
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+            return View(customers);
         }
 
         // GET: Customers/Details/5

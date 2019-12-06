@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -28,8 +29,30 @@ namespace ServiceDeskPro.Controllers
         }
         public ActionResult Index()
         {
-            var a = ListaSoluciones();
-            return View(a.ToList());
+            IEnumerable<Request> requests = null;
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("https://localhost:44339/api/");
+
+                var responseTask = client.GetAsync("Requests/GetSolicitudes");
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readTask = result.Content.ReadAsAsync<IList<Request>>();
+                    readTask.Wait();
+
+                    requests = readTask.Result;
+                }
+                else
+                {
+                    requests = Enumerable.Empty<Request>();
+                    ModelState.AddModelError(string.Empty, "Server error. Please contact administrator.");
+                }
+            }
+            return View(requests);
         }
         public ActionResult SolucionesAsignada()
         {
@@ -83,8 +106,6 @@ namespace ServiceDeskPro.Controllers
             db.SaveChanges();
             return RedirectToAction("Index");
         }
-
-     
 
         // GET: Requests/Details/5
         public ActionResult Details(int? id)
